@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TestApi.Responses;
 
 namespace TestApi.Controllers;
 
@@ -15,8 +16,10 @@ public class TestController : ControllerBase
     }
 
     [HttpGet(Name = "GetTest")]
-    public TestResponse GetTest()
+    public ActionResult<ApiResponse<object>> GetTest()
     {
-        return new TestResponse { Value = "test successful" };
+        var testData = new { Date = "2025-08-28", Weather = "cloudy" };
+        var responseData = ApiResponse<object>.Success(testData, "Operation was successful");
+        return Ok(responseData);
     }
 }
