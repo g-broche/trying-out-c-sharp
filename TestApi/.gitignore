@@ -1,0 +1,32 @@
+# Build results
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.exe
+*.dll
+*.pdb
+
+# VS Code / Rider / Visual Studio
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# ASP.NET specific
+appsettings.*.json
+secrets.json
+*.db
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
