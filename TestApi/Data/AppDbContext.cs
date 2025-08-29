@@ -9,8 +9,8 @@ namespace TestApi.Data
         {
         }
 
-        public DbSet<User> Users { get; set; } = null!;
-        public DbSet<Picture> Pictures { get; set; } = null!;
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Picture> Pictures => Set<Picture>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

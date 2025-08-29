@@ -12,12 +12,17 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($"Connection string seen by EF: {conn}");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+    }
     app.MapScalarApiReference();
     app.MapOpenApi();
 }
