@@ -1,22 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TestApi.Data;
 using TestApi.DTOs;
 using TestApi.Responses;
 
 namespace TestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/test")]
 public class TestController : ControllerBase
 {
-
     private readonly ILogger<TestController> _logger;
+    private readonly AppDbContext _db;
 
-    public TestController(ILogger<TestController> logger)
+    public TestController(ILogger<TestController> logger, AppDbContext db)
     {
         _logger = logger;
+        _db = db;
     }
 
-    [HttpGet(Name = "GetTest")]
+    [HttpGet()]
     public ActionResult<ApiResponse<PictureDto[]>> GetTest()
     {
         PictureDto[] pictures = [
@@ -26,5 +29,24 @@ public class TestController : ControllerBase
             ];
         var responseData = ApiResponse<object>.Success(pictures, "Operation was successful");
         return Ok(responseData);
+    }
+
+    [HttpGet("db")]
+    public async Task<IActionResult> GetDbTest()
+    {
+        try
+        {
+            // Simple test query: SELECT 1
+            await _db.Database.ExecuteSqlRawAsync("SELECT 1");
+
+            // Optionally, you can also count users as an extra check
+            // var userCount = await _db.Users.CountAsync();
+
+            return Ok(new { Message = "Database connection successful" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Database connection failed", Error = ex.Message });
+        }
     }
 }
