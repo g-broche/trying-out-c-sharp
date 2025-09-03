@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TestApi.Data;
 using TestApi.DTOs.Requests;
 using TestApi.DTOs.Responses;
@@ -11,7 +12,6 @@ using TestApi.Services;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private static List<User> _users = [];
     private readonly ILogger<AuthController> _logger;
     private readonly AppDbContext _db;
     private readonly PasswordHasher<User> _PasswordHasher = new();
@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public ActionResult<UserDetailDto> Register(RegisterRequest request)
+    public async Task<ActionResult<UserDetailDto>> Register(RegisterRequest request)
     {
         try
         {
@@ -36,7 +36,8 @@ public class AuthController : ControllerBase
             newUser.LastName = request.LastName;
             newUser.Email = request.Email;
             newUser.Password = hashedPassword;
-            _users.Add(newUser);
+            _db.Users.Add(newUser);
+            await _db.SaveChangesAsync();
             return Ok(new UserDetailDto(newUser));
         }
         catch (System.Exception)
@@ -46,27 +47,19 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public ActionResult<string> Login(LoginRequest request)
+    public async Task<ActionResult<string>> Login(LoginRequest request)
     {
         try
         {
-            Console.WriteLine(">>> Incomming request email : " + request.Email);
-            Console.WriteLine(">>> Incomming request password : " + request.Password);
             if (request is null || request.Email is null || request.Password is null)
             {
                 return BadRequest(ApiResponse<string>.Fail(message: "Request is not valid due to missing parameters"));
             }
 
-            _users.ForEach((user) =>
-            {
-                Console.WriteLine(">>> existing user in list : " + user.Email);
-            });
-
-            User? foundUser = _users.Find((it) => it.Email == request.Email);
+            User? foundUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (foundUser is null)
             {
-                Console.WriteLine(">>> no matching user found");
                 return Unauthorized(ApiResponse<string>.Fail(message: "Invalid credentials."));
             }
 
@@ -78,16 +71,13 @@ public class AuthController : ControllerBase
 
             if (authResult == PasswordVerificationResult.Failed)
             {
-                Console.WriteLine(">>> password is not matching");
                 return Unauthorized(ApiResponse<string>.Fail(message: "Invalid credentials."));
             }
             var tokenDto = new TokenDto(_jwtService.GenerateJWT(foundUser));
-            Console.WriteLine(">>> created token : " + tokenDto.Token);
             return Ok(ApiResponse<TokenDto>.Success(data: tokenDto));
         }
         catch (Exception ex)
         {
-            Console.WriteLine(">>> exception : " + ex.Message);
             return StatusCode(500, ApiResponse<string>.Fail(message: "Something went wrong on the server."));
         }
 
