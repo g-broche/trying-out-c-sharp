@@ -29,16 +29,22 @@ public class AuthController : ControllerBase
     {
         try
         {
-
             var newUser = new User();
             var hashedPassword = _PasswordHasher.HashPassword(newUser, request.Password);
             newUser.FirstName = request.FirstName;
             newUser.LastName = request.LastName;
             newUser.Email = request.Email;
             newUser.Password = hashedPassword;
+
             _db.Users.Add(newUser);
             await _db.SaveChangesAsync();
-            return Ok(new UserDetailDto(newUser));
+
+            string jwt = _jwtService.GenerateJWT(newUser);
+            CookieOptions cookieOptions = _jwtService.GenerateCookieOptions();
+            Response.Cookies.Append("jwt", jwt, cookieOptions);
+            UserDetailDto loggedUserDto = new(newUser);
+
+            return Ok(ApiResponse<UserDetailDto>.Success(data: loggedUserDto));
         }
         catch (System.Exception)
         {
@@ -47,7 +53,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<string>> Login(LoginRequest request)
+    public async Task<ActionResult<ApiResponse<UserDetailDto>>> Login(LoginRequest request)
     {
         try
         {
@@ -73,14 +79,15 @@ public class AuthController : ControllerBase
             {
                 return Unauthorized(ApiResponse<string>.Fail(message: "Invalid credentials."));
             }
-            var tokenDto = new TokenDto(_jwtService.GenerateJWT(foundUser));
-            return Ok(ApiResponse<TokenDto>.Success(data: tokenDto));
+            string jwt = _jwtService.GenerateJWT(foundUser);
+            CookieOptions cookieOptions = _jwtService.GenerateCookieOptions();
+            Response.Cookies.Append("jwt", jwt, cookieOptions);
+            UserDetailDto loggedUserDto = new(foundUser);
+            return Ok(ApiResponse<UserDetailDto>.Success(data: loggedUserDto));
         }
         catch (Exception ex)
         {
             return StatusCode(500, ApiResponse<string>.Fail(message: "Something went wrong on the server."));
         }
-
     }
-
 }

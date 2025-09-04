@@ -2,8 +2,6 @@ using TestApi.Models;
 
 namespace TestApi.DTOs.Responses;
 
-#pragma warning restore format
-
 public record UserDetailDto(
     string FirstName,
     string LastName,
