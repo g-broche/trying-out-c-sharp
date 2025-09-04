@@ -1,5 +1,3 @@
-namespace TestApi.DTOs;
-
-#pragma warning restore format
+namespace TestApi.DTOs.Responses;
 
 public record PictureDto(string AuthorName, string Title, string Path);

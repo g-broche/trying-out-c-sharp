@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TestApi.Data;
-using TestApi.DTOs;
+using TestApi.DTOs.Responses;
 using TestApi.Responses;
 
 namespace TestApi.Controllers;
@@ -36,13 +36,9 @@ public class TestController : ControllerBase
     {
         try
         {
-            // Simple test query: SELECT 1
             await _db.Database.ExecuteSqlRawAsync("SELECT 1");
 
-            // Optionally, you can also count users as an extra check
-            // var userCount = await _db.Users.CountAsync();
-
-            return Ok(new { Message = "Database connection successful" });
+            return Ok(ApiResponse<object>.Success("Database connection successful"));
         }
         catch (Exception ex)
         {

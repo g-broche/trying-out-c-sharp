@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using TestApi.Data;
+using TestApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddSingleton<JwtService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
