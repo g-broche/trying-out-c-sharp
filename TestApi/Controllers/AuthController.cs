@@ -90,4 +90,19 @@ public class AuthController : ControllerBase
             return StatusCode(500, ApiResponse<string>.Fail(message: "Something went wrong on the server."));
         }
     }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        try
+        {
+            CookieOptions expiredCookieOptions = _jwtService.GenerateExpiredCookieOptions();
+            Response.Cookies.Append("jwt", string.Empty, expiredCookieOptions);
+            return Ok(ApiResponse<string>.Success(message: "Logged out successfully"));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.Fail(message: "Something went wrong on the server."));
+        }
+    }
 }

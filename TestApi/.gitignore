@@ -21,6 +21,7 @@ x86/
 
 # ASP.NET specific
 appsettings.*.json
+!appsettings.Example.json
 secrets.json
 *.db
 

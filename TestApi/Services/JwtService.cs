@@ -12,6 +12,7 @@ public class JwtService
     private readonly string _issuer;
     private readonly string _audience;
     private readonly int _expirationMinutes;
+    private readonly bool _isCookieSecure;
     private readonly SymmetricSecurityKey _key;
     private readonly SigningCredentials _credentials;
     private readonly JwtSecurityTokenHandler _tokenHandler;
@@ -19,6 +20,7 @@ public class JwtService
     {
         _secretKey = configuration["Jwt:SecretKey"] ?? throw new ArgumentNullException("Jwt:SecretKey not found in configuration");
         _expirationMinutes = configuration.GetValue<int>("Jwt:ExpirationMinutes", 60);
+        _isCookieSecure = configuration.GetValue<bool>("Jwt:Secure", true);
         _issuer = configuration["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer not found in configuration");
         _audience = configuration["Jwt:Audience"] ?? throw new ArgumentNullException("Jwt:Audience not found in configuration");
         _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
@@ -50,9 +52,20 @@ public class JwtService
         return new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = _isCookieSecure,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddHours(_expirationMinutes)
+            Expires = DateTimeOffset.UtcNow.AddMinutes(_expirationMinutes)
+        };
+    }
+
+    public CookieOptions GenerateExpiredCookieOptions()
+    {
+        return new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _isCookieSecure,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1)
         };
     }
 }

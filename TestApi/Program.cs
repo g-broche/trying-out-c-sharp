@@ -11,11 +11,30 @@ builder.Services.AddSingleton<JwtService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+var allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowConfiguredOrigins", policy =>
+    {
+        if (allowedOrigins is { Length: > 0 })
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+    });
+});
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 
+
 var app = builder.Build();
+app.UseCors("AllowConfiguredOrigins");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
